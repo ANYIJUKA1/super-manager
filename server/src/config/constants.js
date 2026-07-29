@@ -1,29 +1,13 @@
-// User Roles
+/**
+ * Application Constants
+ */
+
 const USER_ROLES = {
   ADMIN: 'ADMIN',
   MANAGER: 'MANAGER',
   EMPLOYEE: 'EMPLOYEE'
 };
 
-// Leave Types
-const LEAVE_TYPES = {
-  ANNUAL: 'ANNUAL',
-  SICK: 'SICK',
-  MATERNITY: 'MATERNITY',
-  PATERNITY: 'PATERNITY',
-  UNPAID: 'UNPAID',
-  EMERGENCY: 'EMERGENCY'
-};
-
-// Leave Status
-const LEAVE_STATUS = {
-  PENDING: 'PENDING',
-  APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED',
-  CANCELLED: 'CANCELLED'
-};
-
-// Employee Status
 const EMPLOYEE_STATUS = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
@@ -31,7 +15,13 @@ const EMPLOYEE_STATUS = {
   TERMINATED: 'TERMINATED'
 };
 
-// HTTP Status Codes
+const LEAVE_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED'
+};
+
 const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,
@@ -44,17 +34,15 @@ const HTTP_STATUS = {
   INTERNAL_SERVER_ERROR: 500
 };
 
-// Error Messages
 const ERROR_MESSAGES = {
-  INVALID_CREDENTIALS: 'Invalid email or password',
-  USER_NOT_FOUND: 'User not found',
-  USER_ALREADY_EXISTS: 'User already exists with this email',
+  INTERNAL_ERROR: 'Internal server error',
+  VALIDATION_ERROR: 'Validation error',
   UNAUTHORIZED: 'Unauthorized access',
   FORBIDDEN: 'Forbidden - insufficient permissions',
-  VALIDATION_ERROR: 'Validation error',
-  DATABASE_ERROR: 'Database error',
-  INTERNAL_ERROR: 'Internal server error',
+  INVALID_CREDENTIALS: 'Invalid email or password',
   INVALID_TOKEN: 'Invalid or expired token',
+  USER_NOT_FOUND: 'User not found',
+  USER_ALREADY_EXISTS: 'User already exists with this email',
   EMPLOYEE_NOT_FOUND: 'Employee not found',
   DEPARTMENT_NOT_FOUND: 'Department not found',
   LEAVE_NOT_FOUND: 'Leave request not found'
@@ -62,9 +50,8 @@ const ERROR_MESSAGES = {
 
 module.exports = {
   USER_ROLES,
-  LEAVE_TYPES,
-  LEAVE_STATUS,
   EMPLOYEE_STATUS,
+  LEAVE_STATUS,
   HTTP_STATUS,
   ERROR_MESSAGES
 };

@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
 /**
- * Generate JWT Access Token
+ * Generate access token
  */
 const generateAccessToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -11,7 +10,7 @@ const generateAccessToken = (payload) => {
 };
 
 /**
- * Generate Refresh Token
+ * Generate refresh token
  */
 const generateRefreshToken = (payload) => {
   return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
@@ -20,38 +19,32 @@ const generateRefreshToken = (payload) => {
 };
 
 /**
- * Verify Access Token
+ * Verify access token
  */
 const verifyAccessToken = (token) => {
   try {
     return jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
+    console.error('Access token verification error:', error.message);
     return null;
   }
 };
 
 /**
- * Verify Refresh Token
+ * Verify refresh token
  */
 const verifyRefreshToken = (token) => {
   try {
     return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
   } catch (error) {
+    console.error('Refresh token verification error:', error.message);
     return null;
   }
-};
-
-/**
- * Decode token without verification
- */
-const decodeToken = (token) => {
-  return jwt.decode(token);
 };
 
 module.exports = {
   generateAccessToken,
   generateRefreshToken,
   verifyAccessToken,
-  verifyRefreshToken,
-  decodeToken
+  verifyRefreshToken
 };
