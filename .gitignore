@@ -1,0 +1,63 @@
+# .gitignore
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+.sublime-workspace
+.sublime-project
+
+# Testing
+coverage/
+.nyc_output/
+.jest-cache/
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# OS
+Thumbs.db
+.AppleDouble
+.LSOverride
+*.sublime-workspace
+
+# Package manager
+package-lock.json
+yarn.lock
+
+# Database
+*.sqlite
+*.sqlite3
+.env.test
+
+# Misc
+.env.*.swp
+.env.local.swp
