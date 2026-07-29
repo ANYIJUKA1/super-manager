@@ -1,79 +1,59 @@
 const { HTTP_STATUS, ERROR_MESSAGES } = require('../config/constants');
 
 /**
- * Global error handling middleware
+ * Global error handler middleware
  */
 const errorHandler = (err, req, res, next) => {
   console.error('Error:', err);
 
-  // Default error response
-  let statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
-  let message = ERROR_MESSAGES.INTERNAL_ERROR;
-  let errors = null;
-
-  // Handle Joi validation errors
-  if (err.isJoi) {
-    statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY;
-    message = ERROR_MESSAGES.VALIDATION_ERROR;
-    errors = {};
-    err.details.forEach((detail) => {
-      const field = detail.path.join('.');
-      errors[field] = [detail.message];
+  // Sequelize validation error
+  if (err.name === 'SequelizeValidationError') {
+    const errors = {};
+    err.errors.forEach(error => {
+      errors[error.path] = [error.message];
+    });
+    return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json({
+      success: false,
+      message: ERROR_MESSAGES.VALIDATION_ERROR,
+      errors
     });
   }
 
-  // Handle JWT errors
+  // Sequelize unique constraint error
+  if (err.name === 'SequelizeUniqueConstraintError') {
+    const errors = {};
+    err.errors.forEach(error => {
+      errors[error.path] = [error.message];
+    });
+    return res.status(HTTP_STATUS.CONFLICT).json({
+      success: false,
+      message: 'Unique constraint violation',
+      errors
+    });
+  }
+
+  // JWT errors
   if (err.name === 'JsonWebTokenError') {
-    statusCode = HTTP_STATUS.UNAUTHORIZED;
-    message = ERROR_MESSAGES.INVALID_TOKEN;
+    return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+      success: false,
+      message: 'Invalid token'
+    });
   }
 
   if (err.name === 'TokenExpiredError') {
-    statusCode = HTTP_STATUS.UNAUTHORIZED;
-    message = 'Token expired';
-  }
-
-  // Handle Sequelize errors
-  if (err.name === 'SequelizeValidationError') {
-    statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY;
-    message = ERROR_MESSAGES.VALIDATION_ERROR;
-    errors = {};
-    err.errors.forEach((error) => {
-      errors[error.path] = [error.message];
+    return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+      success: false,
+      message: 'Token has expired'
     });
   }
 
-  if (err.name === 'SequelizeUniqueConstraintError') {
-    statusCode = HTTP_STATUS.CONFLICT;
-    message = 'Duplicate entry';
-    errors = {};
-    err.errors.forEach((error) => {
-      errors[error.path] = ['This value already exists'];
-    });
-  }
-
-  // Custom error response
-  if (err.statusCode) {
-    statusCode = err.statusCode;
-    message = err.message || message;
-    errors = err.errors || errors;
-  }
-
-  res.status(statusCode).json({
+  // Default error
+  res.status(err.status || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
     success: false,
-    message,
-    ...(errors && { errors })
+    message: err.message || ERROR_MESSAGES.INTERNAL_ERROR
   });
 };
 
-/**
- * Async route wrapper to catch errors
- */
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
-
 module.exports = {
-  errorHandler,
-  asyncHandler
+  errorHandler
 };

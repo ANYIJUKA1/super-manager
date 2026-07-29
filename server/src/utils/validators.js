@@ -1,24 +1,12 @@
 const Joi = require('joi');
 
-// Validation schemas
 const schemas = {
-  // Auth Schemas
   registerSchema: Joi.object({
-    email: Joi.string().email().required().messages({
-      'string.email': 'Please provide a valid email address',
-      'any.required': 'Email is required'
-    }),
-    password: Joi.string().min(6).required().messages({
-      'string.min': 'Password must be at least 6 characters',
-      'any.required': 'Password is required'
-    }),
-    firstName: Joi.string().required().messages({
-      'any.required': 'First name is required'
-    }),
-    lastName: Joi.string().required().messages({
-      'any.required': 'Last name is required'
-    }),
-    role: Joi.string().valid('ADMIN', 'MANAGER', 'EMPLOYEE').default('EMPLOYEE')
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    firstName: Joi.string().min(2).required(),
+    lastName: Joi.string().min(2).required(),
+    role: Joi.string().valid('ADMIN', 'MANAGER', 'EMPLOYEE').optional()
   }),
 
   loginSchema: Joi.object({
@@ -26,90 +14,82 @@ const schemas = {
     password: Joi.string().required()
   }),
 
-  // Employee Schemas
   createEmployeeSchema: Joi.object({
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
+    firstName: Joi.string().min(2).required(),
+    lastName: Joi.string().min(2).required(),
     email: Joi.string().email().required(),
-    phone: Joi.string().pattern(/^[0-9]{10,15}$/),
-    dateOfBirth: Joi.date(),
-    gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER'),
-    address: Joi.string(),
-    city: Joi.string(),
-    state: Joi.string(),
-    zipCode: Joi.string(),
-    country: Joi.string(),
-    departmentId: Joi.number().integer().required(),
+    phone: Joi.string().optional(),
+    dateOfBirth: Joi.date().optional(),
+    gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER').optional(),
+    address: Joi.string().optional(),
+    city: Joi.string().optional(),
+    state: Joi.string().optional(),
+    zipCode: Joi.string().optional(),
+    country: Joi.string().optional(),
+    departmentId: Joi.number().required(),
     position: Joi.string().required(),
     joinDate: Joi.date().required(),
-    salary: Joi.number().min(0),
-    status: Joi.string().valid('ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED').default('ACTIVE')
+    salary: Joi.number().optional(),
+    status: Joi.string().valid('ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED').optional(),
+    reportingManagerId: Joi.number().optional()
   }),
 
   updateEmployeeSchema: Joi.object({
-    firstName: Joi.string(),
-    lastName: Joi.string(),
-    email: Joi.string().email(),
-    phone: Joi.string().pattern(/^[0-9]{10,15}$/),
-    dateOfBirth: Joi.date(),
-    gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER'),
-    address: Joi.string(),
-    city: Joi.string(),
-    state: Joi.string(),
-    zipCode: Joi.string(),
-    country: Joi.string(),
-    departmentId: Joi.number().integer(),
-    position: Joi.string(),
-    salary: Joi.number().min(0),
-    status: Joi.string().valid('ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED')
-  }).min(1),
+    firstName: Joi.string().min(2).optional(),
+    lastName: Joi.string().min(2).optional(),
+    email: Joi.string().email().optional(),
+    phone: Joi.string().optional(),
+    dateOfBirth: Joi.date().optional(),
+    gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER').optional(),
+    address: Joi.string().optional(),
+    city: Joi.string().optional(),
+    state: Joi.string().optional(),
+    zipCode: Joi.string().optional(),
+    country: Joi.string().optional(),
+    departmentId: Joi.number().optional(),
+    position: Joi.string().optional(),
+    salary: Joi.number().optional(),
+    status: Joi.string().valid('ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED').optional(),
+    reportingManagerId: Joi.number().optional()
+  }),
 
-  // Department Schemas
   createDepartmentSchema: Joi.object({
-    name: Joi.string().required(),
-    description: Joi.string(),
-    managerId: Joi.number().integer(),
-    parentDepartmentId: Joi.number().integer()
+    name: Joi.string().min(2).required(),
+    description: Joi.string().optional(),
+    managerId: Joi.number().optional(),
+    parentDepartmentId: Joi.number().optional(),
+    budget: Joi.number().optional()
   }),
 
   updateDepartmentSchema: Joi.object({
-    name: Joi.string(),
-    description: Joi.string(),
-    managerId: Joi.number().integer(),
-    parentDepartmentId: Joi.number().integer()
-  }).min(1),
-
-  // Leave Schemas
-  createLeaveSchema: Joi.object({
-    leaveTypeId: Joi.number().integer().required(),
-    startDate: Joi.date().required(),
-    endDate: Joi.date().min(Joi.ref('startDate')).required(),
-    reason: Joi.string(),
-    numberOfDays: Joi.number().integer().min(1)
+    name: Joi.string().min(2).optional(),
+    description: Joi.string().optional(),
+    managerId: Joi.number().optional(),
+    parentDepartmentId: Joi.number().optional(),
+    budget: Joi.number().optional(),
+    isActive: Joi.boolean().optional()
   }),
 
-  updateLeaveSchema: Joi.object({
-    status: Joi.string().valid('APPROVED', 'REJECTED').required(),
-    remarks: Joi.string()
+  createLeaveSchema: Joi.object({
+    leaveTypeId: Joi.number().required(),
+    startDate: Joi.date().required(),
+    endDate: Joi.date().required(),
+    reason: Joi.string().optional()
   })
 };
 
-/**
- * Validate request data against schema
- */
 const validateSchema = async (data, schema) => {
   try {
-    const value = await schema.validateAsync(data, {
-      abortEarly: false,
-      stripUnknown: true
-    });
+    const value = await schema.validateAsync(data, { abortEarly: false });
     return { valid: true, value, errors: null };
   } catch (error) {
     const errors = {};
     if (error.details) {
-      error.details.forEach((detail) => {
-        const field = detail.path.join('.');
-        errors[field] = [detail.message];
+      error.details.forEach(detail => {
+        if (!errors[detail.context.label]) {
+          errors[detail.context.label] = [];
+        }
+        errors[detail.context.label].push(detail.message);
       });
     }
     return { valid: false, value: null, errors };

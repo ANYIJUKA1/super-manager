@@ -1,23 +1,22 @@
-const { verifyAccessToken } = require('../utils/tokenUtils');
-const { HTTP_STATUS, ERROR_MESSAGES, USER_ROLES } = require('../config/constants');
+const jwt = require('jsonwebtoken');
+const { USER_ROLES, HTTP_STATUS, ERROR_MESSAGES } = require('../config/constants');
+const { verifyAccessToken } = require('./tokenUtils');
 
 /**
- * Verify JWT token middleware
+ * Authentication middleware
  */
 const authenticate = (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const token = req.headers.authorization?.split(' ')[1];
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
       return res.status(HTTP_STATUS.UNAUTHORIZED).json({
         success: false,
-        message: ERROR_MESSAGES.UNAUTHORIZED
+        message: 'Access token required'
       });
     }
 
-    const token = authHeader.substring(7);
     const decoded = verifyAccessToken(token);
-
     if (!decoded) {
       return res.status(HTTP_STATUS.UNAUTHORIZED).json({
         success: false,
@@ -28,6 +27,7 @@ const authenticate = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
+    console.error('Authentication error:', error);
     return res.status(HTTP_STATUS.UNAUTHORIZED).json({
       success: false,
       message: ERROR_MESSAGES.UNAUTHORIZED
@@ -36,41 +36,34 @@ const authenticate = (req, res, next) => {
 };
 
 /**
- * Role-based authorization middleware
+ * Admin only middleware
  */
-const authorize = (...allowedRoles) => {
-  return (req, res, next) => {
-    if (!req.user) {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        success: false,
-        message: ERROR_MESSAGES.UNAUTHORIZED
-      });
-    }
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(HTTP_STATUS.FORBIDDEN).json({
-        success: false,
-        message: ERROR_MESSAGES.FORBIDDEN
-      });
-    }
-
-    next();
-  };
+const requireAdmin = (req, res, next) => {
+  if (req.user?.role !== USER_ROLES.ADMIN) {
+    return res.status(HTTP_STATUS.FORBIDDEN).json({
+      success: false,
+      message: ERROR_MESSAGES.FORBIDDEN
+    });
+  }
+  next();
 };
 
 /**
- * Middleware to check if user is ADMIN
+ * Manager or Admin middleware
  */
-const requireAdmin = authorize(USER_ROLES.ADMIN);
-
-/**
- * Middleware to check if user is ADMIN or MANAGER
- */
-const requireManagerOrAdmin = authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER);
+const requireManagerOrAdmin = (req, res, next) => {
+  const allowedRoles = [USER_ROLES.MANAGER, USER_ROLES.ADMIN];
+  if (!allowedRoles.includes(req.user?.role)) {
+    return res.status(HTTP_STATUS.FORBIDDEN).json({
+      success: false,
+      message: ERROR_MESSAGES.FORBIDDEN
+    });
+  }
+  next();
+};
 
 module.exports = {
   authenticate,
-  authorize,
   requireAdmin,
   requireManagerOrAdmin
 };
